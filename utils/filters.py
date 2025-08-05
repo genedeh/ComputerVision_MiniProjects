@@ -94,3 +94,15 @@ class ImageFilters:
         segmented_img[markers == -1] = [0, 225, 0]  # green boundary
 
         return cv2.cvtColor(segmented_img, cv2.COLOR_BGR2RGB)
+
+    def convert_color(self, mode="RGB"):
+        if mode == "RGB":
+          return self.image  # Already in RGB
+        elif mode == "BGR":
+          return cv2.cvtColor(self.image, cv2.COLOR_RGB2BGR)
+        elif mode == "Grayscale":
+          return cv2.cvtColor(self.image, cv2.COLOR_RGB2GRAY)
+        elif mode == "HSV":
+          return cv2.cvtColor(self.image, cv2.COLOR_RGB2HSV)
+        else:
+          raise ValueError("Unsupported color mode selected")
