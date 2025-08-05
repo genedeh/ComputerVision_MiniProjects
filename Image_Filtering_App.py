@@ -1,3 +1,4 @@
+import cv2
 import streamlit as st
 from PIL import Image
 import numpy as np
@@ -21,7 +22,7 @@ processor = ImageFilters(image)
 
 # Sidebar for filter selection
 filter_option = st.sidebar.selectbox("Choose a filter",  [
-    "Original", "Canny Edge Detection", "Otsu Thresholding", "Blur", "Contour Detection", "Template Matching", "Watershed Segmentation"
+    "Original", "Canny Edge Detection", "Otsu Thresholding", "Blur", "Contour Detection", "Template Matching", "Watershed Segmentation", "Color Transform"
 ])
 # Optional dynamic sliders based on filter
 if filter_option == "Otsu Thresholding":
@@ -86,12 +87,30 @@ elif filter_option == "Template Matching":
 elif filter_option == "Watershed Segmentation":
     output = processor.watershed_segmentation()
     st.info("This filter works best with images containing multiple objects on a distinct background, like coins.")
+elif filter_option == "Color Transform":
+    st.sidebar.subheader("Color Space Mode")
+    mode = st.sidebar.selectbox(
+        "Convert to", ["RGB", "BGR", "Grayscale", "HSV"])
+
+    output = processor.convert_color(mode)
+
+    if mode == "Grayscale":
+        output_display = np.stack([output]*3, axis=-1)
+    elif mode == "HSV":
+        output_display = cv2.cvtColor(output, cv2.COLOR_HSV2RGB)
+    elif mode == "BGR":
+        output_display = cv2.cvtColor(output, cv2.COLOR_BGR2RGB)
+    else:
+        output_display = output
+
+    st.image(output_display,
+             caption=f"Converted to {mode}", use_column_width=True)
 
 else:
     output = np.array(image)
 
 # Display side-by-side
-if filter_option not in ["Template Matching", "Contour Detection"]:
+if filter_option not in ["Template Matching", "Contour Detection", "Color Transform"]:
     tab1, tab2 = st.tabs(["Filtered Image", "Original Image"])
     tab1.image(convert_to_pil(output), use_column_width=True)
     tab2.image(image, use_column_width=True)
