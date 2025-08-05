@@ -21,7 +21,7 @@ processor = ImageFilters(image)
 
 # Sidebar for filter selection
 filter_option = st.sidebar.selectbox("Choose a filter",  [
-    "Original", "Canny Edge Detection", "Otsu Thresholding", "Blur", "Contour Detection", "Template Matching"
+    "Original", "Canny Edge Detection", "Otsu Thresholding", "Blur", "Contour Detection", "Template Matching", "Watershed Segmentation"
 ])
 # Optional dynamic sliders based on filter
 if filter_option == "Otsu Thresholding":
@@ -83,6 +83,10 @@ elif filter_option == "Template Matching":
                    use_column_width=True)
     else:
         st.info("Please upload both the main image and the template image.")
+elif filter_option == "Watershed Segmentation":
+    output = processor.watershed_segmentation()
+    st.info("This filter works best with images containing multiple objects on a distinct background, like coins.")
+
 else:
     output = np.array(image)
 
