@@ -101,8 +101,36 @@ class ImageFilters:
         elif mode == "BGR":
           return cv2.cvtColor(self.image, cv2.COLOR_RGB2BGR)
         elif mode == "Grayscale":
-          return cv2.cvtColor(self.image, cv2.COLOR_RGB2GRAY)
+          return self.gray_image
         elif mode == "HSV":
           return cv2.cvtColor(self.image, cv2.COLOR_RGB2HSV)
         else:
           raise ValueError("Unsupported color mode selected")
+    
+    def resize(self, width=None, height=None):
+        h, w = self.image.shape[:2]
+        width = width or w
+        height = height or h
+        return cv2.resize(self.image, (width, height))
+
+    def crop(self, x1=0, y1=0, x2=None, y2=None):
+        h, w = self.image.shape[:2]
+        x2 = x2 or w
+        y2 = y2 or h
+        return self.image[y1:y2, x1:x2]
+
+    def apply_mask(self):
+        h, w = self.image.shape[:2]
+        mask = np.zeros((h, w), dtype=np.uint8)
+        center = (w // 2, h // 2)
+        radius = min(w, h) // 4
+        cv2.circle(mask, center, radius, 255, -1)
+
+        masked = cv2.bitwise_and(self.image, self.image, mask=mask)
+        return masked
+
+    def adjust_brightness_contrast(self, brightness=0, contrast=0):
+        img = np.int16(self.image)
+        img = img * (contrast / 127 + 1) - contrast + brightness
+        img = np.clip(img, 0, 255)
+        return np.uint8(img)
