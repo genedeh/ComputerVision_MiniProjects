@@ -50,13 +50,12 @@ elif filter_option == "Contour Detection":
         contours_img, gray = processor.find_contours(
             t1, t2, retrieval_mode)
 
-        tab1, tab2, tab3 = st.tabs([
-            "Contours", "Grayscale", "Original"
+        tab1, tab2 = st.tabs([
+            "Contours", "Original"
         ])
         tab1.image(contours_img, caption="Detected Contours",
                    use_column_width=True)
-        tab2.image(gray, caption="Grayscale Image", use_column_width=True)
-        tab3.image(image, caption="Original Image", use_column_width=True)
+        tab2.image(image, caption="Original Image", use_column_width=True)
 
     else:
         st.info("Click the button to detect contours.")
