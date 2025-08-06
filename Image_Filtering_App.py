@@ -4,11 +4,11 @@ from PIL import Image
 import numpy as np
 import requests
 from utils.filters import ImageFilters
-from utils.utils import convert_to_pil
+from utils.utils import convert_to_pil, get_image_download_link
 
 st.title("🖼️ Image Filter Playground")
 
-
+final_output = Image
 uploaded_file = st.file_uploader(
     "Upload an image", type=["jpg", "jpeg", "png"])
 if uploaded_file:
@@ -56,8 +56,10 @@ elif filter_option == "Contour Detection":
         tab1.image(contours_img, caption="Detected Contours",
                    use_column_width=True)
         tab2.image(image, caption="Original Image", use_column_width=True)
+        final_output = contours_img
 
     else:
+        final_output = np.array(image)
         st.info("Click the button to detect contours.")
 elif filter_option == "Template Matching":
     st.sidebar.subheader("Upload Images")
@@ -72,7 +74,6 @@ elif filter_option == "Template Matching":
 
         processor = ImageFilters(main_img)  # Main image processor
 
-
         result_img = processor.template_match(
             np.array(template_img))
 
@@ -81,7 +82,9 @@ elif filter_option == "Template Matching":
         tab1.image(result_img, caption="Matched Region", use_column_width=True)
         tab2.image(main_img, caption="Original Main Image",
                    use_column_width=True)
+        final_output = result_img
     else:
+        final_output = np.array(image)
         st.info("Please upload both the main image and the template image.")
 elif filter_option == "Watershed Segmentation":
     output = processor.watershed_segmentation()
@@ -104,6 +107,8 @@ elif filter_option == "Color Transform":
 
     st.image(output_display,
              caption=f"Converted to {mode}", use_column_width=True)
+    final_output = output_display
+
 elif filter_option == "Transform Tools":
     st.sidebar.subheader("Resize")
     h, w = processor.image.shape[:2]
@@ -112,7 +117,7 @@ elif filter_option == "Transform Tools":
         "Width", min_value=10, max_value=2000, value=w, step=10)
 
     resize_height = st.sidebar.number_input(
-    "Height", min_value=10, max_value=2000, value=h, step=10)
+        "Height", min_value=10, max_value=2000, value=h, step=10)
 
     st.sidebar.subheader("Crop (use sliders)")
     h, w = processor.image.shape[:2]
@@ -121,8 +126,6 @@ elif filter_option == "Transform Tools":
     crop_x2 = st.sidebar.slider("X2", 0, w, w)
     crop_y1 = st.sidebar.slider("Y1", 0, h, 0)
     crop_y2 = st.sidebar.slider("Y2", 0, h, h)
-
-
 
     apply_mask = st.sidebar.checkbox("Apply Circle Mask")
 
@@ -153,13 +156,25 @@ elif filter_option == "Transform Tools":
             transformed).adjust_brightness_contrast(brightness, contrast)
 
     st.image(transformed, caption="Transformed Image", use_column_width=True)
+    final_output = transformed
 
 
 else:
     output = np.array(image)
+    final_output = output
 
 # Display side-by-side
 if filter_option not in ["Template Matching", "Contour Detection", "Color Transform", "Transform Tools"]:
     tab1, tab2 = st.tabs(["Filtered Image", "Original Image"])
+    final_output = output
     tab1.image(convert_to_pil(output), use_column_width=True)
     tab2.image(image, use_column_width=True)
+
+download_bytes = get_image_download_link(final_output, filename="result.png")
+
+st.download_button(
+    label="📥 Download Image",
+    data=download_bytes,
+    file_name="processed_image.png",
+    mime="image/png"
+)
