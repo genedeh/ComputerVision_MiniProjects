@@ -22,7 +22,7 @@ processor = ImageFilters(image)
 
 # Sidebar for filter selection
 filter_option = st.sidebar.selectbox("Choose a filter",  [
-    "Original", "Canny Edge Detection", "Otsu Thresholding", "Blur", "Contour Detection", "Template Matching", "Watershed Segmentation", "Color Transform"
+    "Original", "Canny Edge Detection", "Otsu Thresholding", "Blur", "Contour Detection", "Template Matching", "Watershed Segmentation", "Color Transform", "Transform Tools"
 ])
 # Optional dynamic sliders based on filter
 if filter_option == "Otsu Thresholding":
@@ -104,12 +104,62 @@ elif filter_option == "Color Transform":
 
     st.image(output_display,
              caption=f"Converted to {mode}", use_column_width=True)
+elif filter_option == "Transform Tools":
+    st.sidebar.subheader("Resize")
+    h, w = processor.image.shape[:2]
+
+    resize_width = st.sidebar.number_input(
+        "Width", min_value=10, max_value=2000, value=w, step=10)
+
+    resize_height = st.sidebar.number_input(
+    "Height", min_value=10, max_value=2000, value=h, step=10)
+
+    st.sidebar.subheader("Crop (use sliders)")
+    h, w = processor.image.shape[:2]
+
+    crop_x1 = st.sidebar.slider("X1", 0, w, 0)
+    crop_x2 = st.sidebar.slider("X2", 0, w, w)
+    crop_y1 = st.sidebar.slider("Y1", 0, h, 0)
+    crop_y2 = st.sidebar.slider("Y2", 0, h, h)
+
+
+
+    apply_mask = st.sidebar.checkbox("Apply Circle Mask")
+
+    st.sidebar.subheader("Brightness & Contrast")
+    brightness = st.sidebar.slider("Brightness", -100, 100, 0)
+    contrast = st.sidebar.slider("Contrast", -100, 100, 0)
+
+    # Start with original image
+    transformed = processor.image
+
+    # Apply resize if values given
+    if resize_width and resize_height:
+        transformed = ImageFilters(transformed).resize(
+            resize_width, resize_height)
+
+    # Apply crop if valid
+    if crop_x2 > crop_x1 and crop_y2 > crop_y1:
+        transformed = ImageFilters(transformed).crop(
+            crop_x1, crop_y1, crop_x2, crop_y2)
+
+    # Apply mask
+    if apply_mask:
+        transformed = ImageFilters(transformed).apply_mask()
+
+    # Apply brightness and contrast
+    if brightness != 0 or contrast != 0:
+        transformed = ImageFilters(
+            transformed).adjust_brightness_contrast(brightness, contrast)
+
+    st.image(transformed, caption="Transformed Image", use_column_width=True)
+
 
 else:
     output = np.array(image)
 
 # Display side-by-side
-if filter_option not in ["Template Matching", "Contour Detection", "Color Transform"]:
+if filter_option not in ["Template Matching", "Contour Detection", "Color Transform", "Transform Tools"]:
     tab1, tab2 = st.tabs(["Filtered Image", "Original Image"])
     tab1.image(convert_to_pil(output), use_column_width=True)
     tab2.image(image, use_column_width=True)

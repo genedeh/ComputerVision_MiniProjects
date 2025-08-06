@@ -5,7 +5,12 @@ from PIL import Image
 
 class ImageFilters:
     def __init__(self, image: Image.Image):
-        self.image = np.array(image.convert("RGB"))  # Ensure consistent format
+        if isinstance(image, Image.Image):
+            self.image = np.array(image.convert("RGB"))
+        elif isinstance(image, np.ndarray):
+            self.image = image  # assume already RGB
+        else:
+            raise TypeError("Unsupported image type")
         self.gray_image = cv2.cvtColor(self.image, cv2.COLOR_RGB2GRAY)
 
     def otsu_threshold(self):
