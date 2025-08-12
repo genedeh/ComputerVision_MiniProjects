@@ -1,3 +1,5 @@
+import tempfile
+import cv2
 from io import BytesIO
 import numpy as np
 from PIL import Image
@@ -19,3 +21,30 @@ def get_image_download_link(np_image, filename="processed.png"):
     byte_im = buf.getvalue()
 
     return byte_im
+
+
+def process_video(input_path):
+    cap = cv2.VideoCapture(input_path)
+    fourcc = cv2.VideoWriter_fourcc(*'avc1')  # safer for browsers
+    out_path = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
+
+    out = cv2.VideoWriter(
+        out_path,
+        fourcc,
+        int(cap.get(cv2.CAP_PROP_FPS)),
+        (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
+         int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+    )
+
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+        # Example processing
+        cv2.rectangle(frame, (50, 50), (200, 200), (0, 255, 0), 2)
+        out.write(frame)
+
+    cap.release()
+    out.release()  # very important to fully close before reading
+
+    return out_path
