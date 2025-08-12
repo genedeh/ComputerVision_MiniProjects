@@ -40,12 +40,17 @@ if uploaded_file is not None:
         tfile.close()
 
         cap = cv2.VideoCapture(tfile.name)
-        fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        out_path = "output.avi"
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        out_path = "output.mp4"
         out = cv2.VideoWriter(out_path, fourcc, int(cap.get(cv2.CAP_PROP_FPS)),
                               (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))))
 
-        while True:
+        # Get total number of frames in the video
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        current_frame = 0
+        progress_bar = st.progress(0)
+
+        while current_frame < total_frames:
             ret, frame = cap.read()
             if not ret:
                 break
@@ -57,10 +62,16 @@ if uploaded_file is not None:
             else:
                 frame = detect_general(frame)
 
+            print(f"Processing frame {current_frame + 1}/{total_frames}")
             out.write(frame)
+            current_frame += 1
+            progress = int((current_frame / total_frames) * 100)
+            progress_bar.progress(progress)
+
 
         cap.release()
         out.release()
+        st.success("Processing complete!")
 
         st.video(out_path)
         os.remove(tfile.name)
